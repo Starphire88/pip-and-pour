@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MobileShell } from "@/components/MobileShell";
 import { PipImage } from "@/components/PipImage";
+import { RequireAuth } from "@/components/RequireAuth";
 import { usePip, pipMood } from "@/lib/pip-store";
 
 export const Route = createFileRoute("/streak")({
@@ -10,8 +11,16 @@ export const Route = createFileRoute("/streak")({
       { name: "description", content: "Watch Pip evolve as your hydration streak grows." },
     ],
   }),
-  component: StreakPage,
+  component: StreakRoute,
 });
+
+function StreakRoute() {
+  return (
+    <RequireAuth>
+      <StreakPage />
+    </RequireAuth>
+  );
+}
 
 const STAGES = [
   { key: "cub", name: "Baby Cub", minDays: 0, quote: "I'm new here. Be gentle." },

@@ -1,12 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { MobileShell } from "@/components/MobileShell";
 import { PipImage } from "@/components/PipImage";
 import { PipBubble } from "@/components/PipBubble";
 import { ProgressRing } from "@/components/ProgressRing";
 import { Confetti } from "@/components/Confetti";
 import { Onboarding } from "@/components/Onboarding";
+import { RequireAuth } from "@/components/RequireAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { usePip, pipMood, pipLine, formatRelative } from "@/lib/pip-store";
 
 export const Route = createFileRoute("/")({
@@ -16,13 +18,42 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Track your hydration with Pip, a sassy panda who reacts in real time." },
     ],
   }),
-  component: Home,
+  component: HomePage,
 });
 
+function HomePage() {
+  return (
+    <RequireAuth>
+      <Home />
+    </RequireAuth>
+  );
+}
+
 function Home() {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { state, total, percent, todayLogs, addLog, completeOnboarding } = usePip();
   const [confetti, setConfetti] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
   const prev = useRef(percent);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [settingsOpen]);
+
+  const handleLogout = async () => {
+    setSettingsOpen(false);
+    await signOut();
+    navigate({ to: "/auth/login", replace: true });
+  };
 
   useEffect(() => {
     if (prev.current < 100 && percent >= 100) {
@@ -46,9 +77,30 @@ function Home() {
         <h1 style={{ fontFamily: "Nunito, system-ui, sans-serif" }} className="text-[22px] font-bold text-[#1A1A1A]">
           Pip 🐼
         </h1>
-        <button aria-label="Settings" className="h-9 w-9 rounded-full flex items-center justify-center active:bg-[#F9F9F9]">
-          <Settings size={20} className="text-[#1A1A1A]" />
-        </button>
+        <div className="relative" ref={settingsRef}>
+          <button
+            type="button"
+            aria-label="Settings"
+            aria-expanded={settingsOpen}
+            onClick={() => setSettingsOpen((open) => !open)}
+            className="h-9 w-9 rounded-full flex items-center justify-center active:bg-[#F9F9F9]"
+          >
+            <Settings size={20} className="text-[#1A1A1A]" />
+          </button>
+          {settingsOpen && (
+            <div className="absolute right-0 top-11 z-20 min-w-[160px] rounded-xl border border-[#E8E8E8] bg-white py-1 shadow-sm">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[14px] text-[#1A1A1A] active:bg-[#F9F9F9]"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                <LogOut size={16} />
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       <section className="flex flex-col items-center px-5 mt-2">

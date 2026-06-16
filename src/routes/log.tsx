@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { PipBubble } from "@/components/PipBubble";
+import { RequireAuth } from "@/components/RequireAuth";
 import { usePip, pipLine } from "@/lib/pip-store";
 
 export const Route = createFileRoute("/log")({
@@ -11,10 +12,18 @@ export const Route = createFileRoute("/log")({
       { name: "description", content: "Log how much water you drank. Pip will react." },
     ],
   }),
-  component: LogPage,
+  component: LogRoute,
 });
 
 const QUICK = [150, 250, 350, 500];
+
+function LogRoute() {
+  return (
+    <RequireAuth>
+      <LogPage />
+    </RequireAuth>
+  );
+}
 
 function LogPage() {
   const { state, total, percent, addLog } = usePip();
