@@ -2,7 +2,13 @@ import { useState } from "react";
 import { PipImage } from "./PipImage";
 import { Minus, Plus } from "lucide-react";
 
-export function Onboarding({ onDone }: { onDone: (goal: number) => void }) {
+export function Onboarding({
+  onDone,
+  isSubmitting = false,
+}: {
+  onDone: (goal: number) => void;
+  isSubmitting?: boolean;
+}) {
   const [goal, setGoal] = useState(2000);
   return (
     <div className="fixed inset-0 z-40 bg-white flex justify-center overflow-y-auto">
@@ -55,10 +61,11 @@ export function Onboarding({ onDone }: { onDone: (goal: number) => void }) {
 
         <button
           onClick={() => onDone(goal)}
-          className="mt-10 w-full h-12 rounded-xl bg-[#1A1A1A] text-white active:scale-[0.99] transition"
+          disabled={isSubmitting}
+          className="mt-10 w-full h-12 rounded-xl bg-[#1A1A1A] text-white active:scale-[0.99] transition disabled:opacity-60"
           style={{ fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700 }}
         >
-          Let's go
+          {isSubmitting ? "Saving…" : "Let's go"}
         </button>
       </div>
     </div>

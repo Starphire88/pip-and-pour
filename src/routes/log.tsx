@@ -3,7 +3,8 @@ import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { PipBubble } from "@/components/PipBubble";
 import { RequireAuth } from "@/components/RequireAuth";
-import { usePip, pipLine } from "@/lib/pip-store";
+import { useAddHydrationLog, useHydrationStats } from "@/hooks/useHydration";
+import { pipLine } from "@/lib/pip-store";
 
 export const Route = createFileRoute("/log")({
   head: () => ({
@@ -26,14 +27,15 @@ function LogRoute() {
 }
 
 function LogPage() {
-  const { state, total, percent, addLog } = usePip();
+  const { total, goal, percent, streakBroken } = useHydrationStats();
+  const addLog = useAddHydrationLog();
   const [custom, setCustom] = useState("");
   const [tapped, setTapped] = useState<number | null>(null);
 
   const handleAdd = (amount: number) => {
     if (!amount || amount <= 0) return;
     setTapped(amount);
-    addLog(amount);
+    addLog.mutate(amount);
     setTimeout(() => setTapped(null), 220);
   };
 
@@ -44,12 +46,12 @@ function LogPage() {
           Log a Drink
         </h1>
         <p className="text-[13px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-          {total} of {state.goal} ml today · {percent}%
+          {total} of {goal} ml today · {percent}%
         </p>
       </header>
 
       <section className="px-5 mt-5">
-        <PipBubble text={pipLine(percent, total, state.streakBroken)} />
+        <PipBubble text={pipLine(percent, total, streakBroken)} />
       </section>
 
       <section className="px-5 mt-6">
@@ -60,6 +62,7 @@ function LogPage() {
               <button
                 key={amt}
                 onClick={() => handleAdd(amt)}
+                disabled={addLog.isPending}
                 className={`h-24 rounded-2xl border-[1.5px] border-[#1A1A1A] transition active:scale-[0.98] ${
                   isActive ? "bg-[#A8D5E2]" : "bg-white"
                 }`}
@@ -97,6 +100,7 @@ function LogPage() {
                 setCustom("");
               }
             }}
+            disabled={addLog.isPending}
             className="h-12 px-5 rounded-xl bg-[#1A1A1A] text-white"
             style={{ fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700 }}
           >

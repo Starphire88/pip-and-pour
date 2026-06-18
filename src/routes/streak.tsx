@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MobileShell } from "@/components/MobileShell";
 import { PipImage } from "@/components/PipImage";
 import { RequireAuth } from "@/components/RequireAuth";
-import { usePip, pipMood } from "@/lib/pip-store";
+import { useHydrationStats } from "@/hooks/useHydration";
+import { pipMood } from "@/lib/pip-store";
 
 export const Route = createFileRoute("/streak")({
   head: () => ({
@@ -38,10 +39,10 @@ function currentStageIndex(days: number) {
 }
 
 function StreakPage() {
-  const { state, percent } = usePip();
-  const stageIdx = currentStageIndex(state.streak);
+  const { percent, streak, streakBroken } = useHydrationStats();
+  const stageIdx = currentStageIndex(streak);
   const stage = STAGES[stageIdx];
-  const mood = state.streakBroken ? "collapsed" : pipMood(percent, false);
+  const mood = streakBroken ? "collapsed" : pipMood(percent, false);
 
   return (
     <MobileShell>
@@ -50,7 +51,7 @@ function StreakPage() {
           Streak & Evolution
         </h1>
         <p className="text-[13px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-          {state.streakBroken ? "The streak was lost. Begin again." : "Pip levels up the longer you stay hydrated."}
+          {streakBroken ? "The streak was lost. Begin again." : "Pip levels up the longer you stay hydrated."}
         </p>
       </header>
 
@@ -59,16 +60,16 @@ function StreakPage() {
           <PipImage mood={mood} size={180} className="pip-float" />
           <div className="mt-3 text-center">
             <h2 style={{ fontFamily: "Nunito, system-ui, sans-serif" }} className="text-[18px] font-bold text-[#1A1A1A]">
-              {state.streakBroken ? "Fallen Sage" : stage.name}
+              {streakBroken ? "Fallen Sage" : stage.name}
             </h2>
             <p className="text-[14px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-              {state.streak} day streak
+              {streak} day streak
             </p>
             <p
               className="mt-3 italic text-[13px] text-[#1A1A1A] max-w-[260px] mx-auto"
               style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
             >
-              "{state.streakBroken ? "The streak is gone. It's fine. Today is a new day." : stage.quote}"
+              "{streakBroken ? "The streak is gone. It's fine. Today is a new day." : stage.quote}"
             </p>
           </div>
         </div>
@@ -82,8 +83,8 @@ function StreakPage() {
           <div className="absolute left-0 right-0 top-3 h-[2px] bg-[#E8E8E8]" />
           <div className="relative grid grid-cols-4 gap-2">
             {STAGES.map((s, i) => {
-              const active = i === stageIdx && !state.streakBroken;
-              const reached = i <= stageIdx && !state.streakBroken;
+              const active = i === stageIdx && !streakBroken;
+              const reached = i <= stageIdx && !streakBroken;
               return (
                 <div key={s.key} className="flex flex-col items-center text-center">
                   <div

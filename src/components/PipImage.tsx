@@ -1,7 +1,7 @@
-import neutral from "@/assets/pip-neutral.png.asset.json";
-import happy from "@/assets/pip-happy.png.asset.json";
-import sad from "@/assets/pip-sad.png.asset.json";
-import collapsed from "@/assets/pip-collapsed.png.asset.json";
+import neutral from "@/assets/pip-neutral.png";
+import happy from "@/assets/pip-happy.png";
+import sad from "@/assets/pip-sad.png";
+import collapsed from "@/assets/pip-collapsed.png";
 
 const map = { neutral, happy, sad, collapsed } as const;
 
@@ -16,7 +16,7 @@ export function PipImage({
 }) {
   return (
     <img
-      src={map[mood].url}
+      src={map[mood]}
       alt={`Pip the panda — ${mood}`}
       width={size}
       height={size}

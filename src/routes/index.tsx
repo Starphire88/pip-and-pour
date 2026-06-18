@@ -9,7 +9,14 @@ import { Confetti } from "@/components/Confetti";
 import { Onboarding } from "@/components/Onboarding";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useAuth } from "@/hooks/useAuth";
-import { usePip, pipMood, pipLine, formatRelative } from "@/lib/pip-store";
+import {
+  useAddHydrationLog,
+  useHydrationStats,
+  useLatestLogToday,
+  useUpsertDailyGoal,
+  useUserSettings,
+} from "@/hooks/useHydration";
+import { pipMood, pipLine, formatRelative } from "@/lib/pip-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,7 +39,11 @@ function HomePage() {
 function Home() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const { state, total, percent, todayLogs, addLog, completeOnboarding } = usePip();
+  const settingsQuery = useUserSettings();
+  const { total, goal, percent, streak, streakBroken, isLoading } = useHydrationStats();
+  const latestLogQuery = useLatestLogToday();
+  const addLog = useAddHydrationLog();
+  const upsertGoal = useUpsertDailyGoal();
   const [confetti, setConfetti] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
@@ -64,11 +75,28 @@ function Home() {
     prev.current = percent;
   }, [percent]);
 
-  if (!state.onboarded) return <Onboarding onDone={completeOnboarding} />;
+  if (settingsQuery.isLoading) {
+    return (
+      <MobileShell>
+        <div className="flex items-center justify-center min-h-[50vh] text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+          Loading…
+        </div>
+      </MobileShell>
+    );
+  }
 
-  const mood = pipMood(percent, state.streakBroken);
-  const line = pipLine(percent, total, state.streakBroken);
-  const lastLogged = todayLogs[0]?.at ?? null;
+  if (!settingsQuery.data) {
+    return (
+      <Onboarding
+        onDone={(dailyGoal) => upsertGoal.mutate(dailyGoal)}
+        isSubmitting={upsertGoal.isPending}
+      />
+    );
+  }
+
+  const mood = pipMood(percent, streakBroken);
+  const line = pipLine(percent, total, streakBroken);
+  const lastLogged = latestLogQuery.data ?? null;
 
   return (
     <MobileShell>
@@ -113,11 +141,12 @@ function Home() {
         </div>
 
         <div className="mt-6">
-          <ProgressRing percent={percent} total={total} goal={state.goal} size={200} stroke={12} />
+          <ProgressRing percent={percent} total={total} goal={goal} size={200} stroke={12} />
         </div>
 
         <button
-          onClick={() => addLog(250)}
+          onClick={() => addLog.mutate(250)}
+          disabled={addLog.isPending || isLoading}
           className="mt-6 w-full h-12 rounded-xl bg-[#A8D5E2] text-[#1A1A1A] active:scale-[0.99] transition"
           style={{ fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700 }}
         >
@@ -131,8 +160,8 @@ function Home() {
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-3 w-full">
-          <StatCard label="Streak" value={`${state.streak}d`} />
-          <StatCard label="Daily Goal" value={`${state.goal}ml`} />
+          <StatCard label="Streak" value={`${streak}d`} />
+          <StatCard label="Daily Goal" value={`${goal}ml`} />
           <StatCard label="Last Logged" value={formatRelative(lastLogged)} />
         </div>
       </section>
