@@ -4,4 +4,5 @@ export const hydrationKeys = {
   latestLogToday: (userId: string) => [...hydrationKeys.all, userId, "latestLogToday"] as const,
   settings: (userId: string) => [...hydrationKeys.all, userId, "settings"] as const,
   streak: (userId: string) => [...hydrationKeys.all, userId, "streak"] as const,
+  history: (userId: string) => [...hydrationKeys.all, userId, "history"] as const,
 };

@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from "react";
+
 export function pipMood(percent: number, streakBroken: boolean): "sad" | "neutral" | "happy" | "collapsed" {
   if (streakBroken) return "collapsed";
   if (percent >= 75) return "happy";
@@ -13,6 +15,36 @@ export function pipLine(percent: number, total: number, streakBroken: boolean): 
   if (percent >= 50) return "Halfway there. Pip is cautiously optimistic.";
   if (percent >= 25) return "A respectable sip. Pip nods, slowly.";
   return "Hey. You're here. Drink some water.";
+}
+
+export function goalSavedLine(): string {
+  return "Goal updated. Pip has adjusted expectations accordingly. Try not to disappoint us both.";
+}
+
+let lineOverride: string | null = null;
+const lineListeners = new Set<() => void>();
+
+function subscribeLineOverride(cb: () => void) {
+  lineListeners.add(cb);
+  return () => lineListeners.delete(cb);
+}
+
+function getLineOverrideSnapshot() {
+  return lineOverride;
+}
+
+export function setPipLineOverride(line: string) {
+  lineOverride = line;
+  lineListeners.forEach((l) => l());
+}
+
+export function clearPipLineOverride() {
+  lineOverride = null;
+  lineListeners.forEach((l) => l());
+}
+
+export function usePipLineOverride() {
+  return useSyncExternalStore(subscribeLineOverride, getLineOverrideSnapshot, getLineOverrideSnapshot);
 }
 
 export function formatRelative(ts: number | null): string {

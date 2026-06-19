@@ -8,7 +8,7 @@ export function PipBubble({ text }: { text: string }) {
       <div className="relative rounded-2xl border-2 border-[#1A1A1A] bg-white px-4 py-3">
         <p
           style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
-          className="italic text-[14px] leading-snug text-[#1A1A1A] text-center line-clamp-2"
+          className="italic text-[14px] leading-snug text-[#1A1A1A] text-center"
         >
           {text}
         </p>

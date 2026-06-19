@@ -1,18 +1,35 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import {
+  deleteHydrationLog,
   fetchLatestLogToday,
   fetchStreak,
   fetchTodayTotal,
   fetchUserSettings,
+  getHydrationHistory,
+  getPipLine,
   insertHydrationLog,
   isStreakBroken,
-  updateStreakIfGoalMet,
+  syncStreakWithTodayTotal,
   upsertDailyGoal,
 } from "@/lib/hydration/api";
 import { hydrationKeys } from "@/lib/hydration/query-keys";
-
 const DEFAULT_GOAL = 2000;
+
+async function syncAfterLogChange(userId: string, queryClient: QueryClient) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: hydrationKeys.todayTotal(userId) }),
+    queryClient.invalidateQueries({ queryKey: hydrationKeys.latestLogToday(userId) }),
+    queryClient.invalidateQueries({ queryKey: hydrationKeys.history(userId) }),
+  ]);
+
+  const todayTotal = await fetchTodayTotal(userId);
+  const settings = await fetchUserSettings(userId);
+  const goal = settings?.daily_goal_ml ?? DEFAULT_GOAL;
+
+  await syncStreakWithTodayTotal(userId, todayTotal, goal);
+  await queryClient.invalidateQueries({ queryKey: hydrationKeys.streak(userId) });
+}
 
 function useUserId() {
   const { user } = useAuth();
@@ -55,6 +72,15 @@ export function useStreak() {
   });
 }
 
+export function useHydrationHistory() {
+  const userId = useUserId();
+  return useQuery({
+    queryKey: hydrationKeys.history(userId ?? ""),
+    queryFn: () => getHydrationHistory(userId!),
+    enabled: !!userId,
+  });
+}
+
 export function useHydrationStats() {
   const totalQuery = useTodayTotal();
   const settingsQuery = useUserSettings();
@@ -90,18 +116,20 @@ export function useAddHydrationLog() {
     },
     onSuccess: async () => {
       if (!userId) return;
+      await syncAfterLogChange(userId, queryClient);
+    },
+  });
+}
 
-      await queryClient.invalidateQueries({ queryKey: hydrationKeys.todayTotal(userId) });
-      await queryClient.invalidateQueries({ queryKey: hydrationKeys.latestLogToday(userId) });
+export function useDeleteHydrationLog() {
+  const userId = useUserId();
+  const queryClient = useQueryClient();
 
-      const todayTotal = await fetchTodayTotal(userId);
-      const settings = await fetchUserSettings(userId);
-      const goal = settings?.daily_goal_ml ?? DEFAULT_GOAL;
-
-      if (todayTotal >= goal) {
-        await updateStreakIfGoalMet(userId, todayTotal, goal);
-        await queryClient.invalidateQueries({ queryKey: hydrationKeys.streak(userId) });
-      }
+  return useMutation({
+    mutationFn: (logId: string) => deleteHydrationLog(logId),
+    onSuccess: async () => {
+      if (!userId) return;
+      await syncAfterLogChange(userId, queryClient);
     },
   });
 }
@@ -115,9 +143,15 @@ export function useUpsertDailyGoal() {
       if (!userId) throw new Error("Not authenticated");
       return upsertDailyGoal(userId, dailyGoalMl);
     },
-    onSuccess: async () => {
+    onSuccess: (settings) => {
       if (!userId) return;
-      await queryClient.invalidateQueries({ queryKey: hydrationKeys.settings(userId) });
+      queryClient.setQueryData(hydrationKeys.settings(userId), settings);
     },
+  });
+}
+export function usePipLine(percentMet: number, streakDays: number, mood: string) {
+  return useQuery({
+    queryKey: ["pipLine", percentMet, streakDays, mood],
+    queryFn: () => getPipLine(percentMet, streakDays, mood),
   });
 }

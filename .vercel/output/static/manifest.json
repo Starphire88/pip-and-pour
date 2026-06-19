@@ -1,0 +1,23 @@
+{
+  "name": "Pip & Pour",
+  "short_name": "Pip & Pour",
+  "description": "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

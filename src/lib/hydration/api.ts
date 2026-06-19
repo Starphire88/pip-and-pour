@@ -17,6 +17,13 @@ export type Streak = {
   updated_at: string;
 };
 
+export type HydrationLog = {
+  id: string;
+  user_id: string;
+  amount_ml: number;
+  logged_at: string;
+};
+
 function getTodayBounds() {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -99,28 +106,41 @@ export async function insertHydrationLog(userId: string, amountMl: number) {
   if (error) throw error;
 }
 
-export async function upsertDailyGoal(userId: string, dailyGoalMl: number) {
-  const goal = Math.max(500, Math.min(5000, dailyGoalMl));
-  const now = new Date().toISOString();
+export async function getHydrationHistory(userId: string): Promise<HydrationLog[]> {
+  const { data, error } = await supabase
+    .from("hydration_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .order("logged_at", { ascending: false });
 
-  const { error } = await supabase.from("user_settings").upsert(
-    {
-      user_id: userId,
-      daily_goal_ml: goal,
-      updated_at: now,
-    },
-    { onConflict: "user_id" },
-  );
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function deleteHydrationLog(logId: string) {
+  const { error } = await supabase.from("hydration_logs").delete().eq("id", logId);
 
   if (error) throw error;
 }
 
-export async function updateStreakIfGoalMet(userId: string, todayTotal: number, dailyGoalMl: number) {
-  if (todayTotal < dailyGoalMl) return;
+export async function upsertDailyGoal(userId: string, dailyGoalMl: number): Promise<UserSettings> {
+  const goal = Math.max(500, Math.min(5000, dailyGoalMl));
 
+  const { data, error } = await supabase
+    .from("user_settings")
+    .upsert({ user_id: userId, daily_goal_ml: goal, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function syncStreakWithTodayTotal(userId: string, todayTotal: number, dailyGoalMl: number) {
   const today = todayDateString();
   const yesterday = yesterdayDateString();
   const now = new Date().toISOString();
+  const goalMet = todayTotal >= dailyGoalMl;
 
   const { data: streak, error: fetchError } = await supabase
     .from("streaks")
@@ -130,21 +150,46 @@ export async function updateStreakIfGoalMet(userId: string, todayTotal: number, 
 
   if (fetchError) throw fetchError;
 
-  if (streak?.last_logged_date === today) return;
+  const currentStreak = streak?.current_streak ?? 0;
+  const longestStreak = streak?.longest_streak ?? 0;
+  const lastLoggedDate = streak?.last_logged_date ?? null;
+  const todayCounted = lastLoggedDate === today;
 
-  const currentStreak =
-    streak?.last_logged_date === yesterday ? (streak.current_streak ?? 0) + 1 : 1;
-  const longestStreak = Math.max(currentStreak, streak?.longest_streak ?? 0);
+  let nextCurrentStreak = currentStreak;
+  let nextLastLoggedDate = lastLoggedDate;
+
+  if (goalMet) {
+    if (!todayCounted) {
+      nextCurrentStreak = lastLoggedDate === yesterday ? currentStreak + 1 : 1;
+      nextLastLoggedDate = today;
+    }
+  } else if (todayCounted) {
+    nextCurrentStreak = Math.max(0, currentStreak - 1);
+    nextLastLoggedDate = nextCurrentStreak > 0 ? yesterday : null;
+  }
+
+  if (nextCurrentStreak === currentStreak && nextLastLoggedDate === lastLoggedDate) return;
+
+  const nextLongestStreak =
+    nextCurrentStreak > longestStreak ? nextCurrentStreak : longestStreak;
 
   const { error } = await supabase.from("streaks").upsert(
     {
       user_id: userId,
-      current_streak: currentStreak,
-      longest_streak: longestStreak,
-      last_logged_date: today,
+      current_streak: nextCurrentStreak,
+      longest_streak: nextLongestStreak,
+      last_logged_date: nextLastLoggedDate,
       updated_at: now,
     },
     { onConflict: "user_id" },
   );
   if (error) throw error;
+}
+export async function getPipLine(percentMet: number, streakDays: number, mood: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke("pip-chat", {
+    body: { percentMet, streakDays, mood },
+  });
+
+  if (error) throw error;
+  return data.pipLine;
 }
