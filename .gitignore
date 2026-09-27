@@ -32,3 +32,11 @@ dist-ssr
 *.sw?
 .env
 .vercel
+
+# Local Node build produced by vite.config.local.ts (Tailscale serving)
+.output-node/
+# Local build produced by vite.config.stub.ts (test-only stub auth server)
+.output-stub/
+# supabase CLI scratch state, regenerated locally
+supabase/.temp/
+.env*

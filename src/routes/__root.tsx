@@ -87,7 +87,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" },
+      { name: "application-name", content: "Pip & Pour" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Pip & Pour" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "format-detection", content: "telephone=no" },
       { title: "Pip the Panda — Hydration Tracker" },
       { name: "description", content: "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy." },
       { name: "theme-color", content: "#FFFFFF" },
@@ -102,6 +108,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/icons/icon-180.png", sizes: "180x180" },
+      { rel: "icon", href: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { rel: "icon", href: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -119,6 +128,9 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icons/icon-180.png" sizes="180x180" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Pip & Pour" />
         <HeadContent />
       </head>
       <body>

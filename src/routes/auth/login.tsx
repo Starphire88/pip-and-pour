@@ -80,6 +80,10 @@ function LoginPage() {
           autoComplete="current-password"
         />
 
+        <div className="text-right">
+          <AuthLink to="/auth/forgot-password">Forgot password?</AuthLink>
+        </div>
+
         {error && (
           <p className="text-[13px] text-[#C44]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
             {error}

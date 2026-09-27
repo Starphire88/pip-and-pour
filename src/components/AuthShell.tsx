@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { PipImage } from "@/components/PipImage";
 
 export function AuthShell({
@@ -44,6 +45,9 @@ export function AuthField({
   onChange,
   placeholder,
   autoComplete,
+  disabled,
+  reveal,
+  describedBy,
 }: {
   label: string;
   id: string;
@@ -52,7 +56,14 @@ export function AuthField({
   onChange: (value: string) => void;
   placeholder?: string;
   autoComplete?: string;
+  disabled?: boolean;
+  /** When true the field renders a show/hide control for password entry. */
+  reveal?: boolean;
+  describedBy?: string;
 }) {
+  const [shown, setShown] = useState(false);
+  const inputType = reveal ? (shown ? "text" : "password") : type;
+
   return (
     <div>
       <label
@@ -62,21 +73,98 @@ export function AuthField({
       >
         {label}
       </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        className="mt-2 w-full h-12 rounded-xl border-[1.5px] border-[#1A1A1A] bg-white px-4 text-[16px] text-[#1A1A1A] outline-none"
-        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-      />
+      <div className="relative">
+        <input
+          id={id}
+          type={inputType}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          disabled={disabled}
+          aria-describedby={describedBy}
+          className={`mt-2 w-full h-12 rounded-xl border-[1.5px] border-[#1A1A1A] bg-white px-4 text-[16px] text-[#1A1A1A] outline-none disabled:opacity-50 ${
+            reveal ? "pr-14" : ""
+          }`}
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        />
+        {reveal && (
+          <button
+            type="button"
+            onClick={() => setShown((prev) => !prev)}
+            aria-label={shown ? "Hide password" : "Show password"}
+            aria-pressed={shown}
+            className="absolute right-1 top-1/2 mt-1 h-11 w-11 flex items-center justify-center rounded-lg text-[#6B6B6B] active:scale-[0.97] transition"
+          >
+            {shown ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-export function AuthLink({ to, children }: { to: "/auth/login" | "/auth/signup"; children: ReactNode }) {
+export function AuthSubmit({
+  children,
+  disabled,
+  type = "submit",
+  onClick,
+}: {
+  children: ReactNode;
+  disabled?: boolean;
+  type?: "submit" | "button";
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className="mt-2 w-full h-12 rounded-xl bg-[#A8D5E2] text-[#1A1A1A] active:scale-[0.99] transition disabled:opacity-50"
+      style={{ fontFamily: "Nunito, system-ui, sans-serif", fontWeight: 700 }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * Inline status text for the auth screens.
+ * Never render provider error strings straight through: they can carry account
+ * or token detail. Use the mapped messages built in each route instead.
+ */
+export function AuthNotice({
+  tone,
+  children,
+}: {
+  tone: "error" | "success" | "info";
+  children: ReactNode;
+}) {
+  const colours: Record<"error" | "success" | "info", string> = {
+    error: "text-[#C44]",
+    success: "text-[#7BAE7F]",
+    info: "text-[#6B6B6B]",
+  };
+
+  return (
+    <p
+      role={tone === "error" ? "alert" : "status"}
+      aria-live="polite"
+      className={`text-[13px] ${colours[tone]}`}
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      {children}
+    </p>
+  );
+}
+
+export function AuthLink({
+  to,
+  children,
+}: {
+  to: "/auth/login" | "/auth/signup" | "/auth/forgot-password" | "/auth/reset-password";
+  children: ReactNode;
+}) {
   return (
     <Link to={to} className="text-[13px] text-[#6B6B6B] underline" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       {children}
