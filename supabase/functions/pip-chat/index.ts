@@ -196,9 +196,14 @@ Current stats: the user has drunk ${percentMet}% of their daily goal, their stre
 Stay in character: theatrical, a little passive-aggressive when hydration is low, warmer when goals are met. Keep your reply to one or two short sentences, this appears in a speech bubble.`;
 
     // 5. Call Gemini on the user's Antigravity key
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    // Secret name is explicit about which account it belongs to: the local ~/.hermes/.env
+    // GEMINI_API_KEY is a DIFFERENT credential (the Hermes stack's own key), so a bare
+    // GEMINI_API_KEY on the project was ambiguous. GEMINI_API_KEY is still read as a fallback
+    // so a half-applied rename cannot take chat down.
+    const apiKey = Deno.env.get("ANTIGRAVITY_GEMINI_API_KEY") ??
+      Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not set on this function");
+      throw new Error("ANTIGRAVITY_GEMINI_API_KEY is not set on this function");
     }
     const model = Deno.env.get("PIP_MODEL") ?? DEFAULT_MODEL;
 
