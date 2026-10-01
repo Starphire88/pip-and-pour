@@ -26,12 +26,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (mounted) {
-        setSession(data.session);
-        setLoading(false);
-      }
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (mounted) {
+          setSession(data.session);
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        // Without this, a rejected getSession (corrupt or blocked local storage) leaves
+        // `loading` true forever and the app renders nothing at all.
+        console.error("auth: getSession failed", error);
+        if (mounted) setLoading(false);
+      });
 
     const {
       data: { subscription },

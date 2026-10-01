@@ -8,6 +8,32 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Per-instance throttle. Warm instances share this map, which blunts a burst from a single
+// account. It is not a substitute for a database-backed counter, but this endpoint calls a
+// paid API and previously had no limit of any kind.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 6;
+const recentCalls = new Map<string, number[]>();
+
+function withinRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const calls = (recentCalls.get(userId) ?? []).filter(
+    (at) => now - at < RATE_LIMIT_WINDOW_MS,
+  );
+  if (calls.length >= RATE_LIMIT_MAX) {
+    recentCalls.set(userId, calls);
+    return false;
+  }
+  calls.push(now);
+  recentCalls.set(userId, calls);
+  if (recentCalls.size > 500) {
+    for (const [key, times] of recentCalls) {
+      if (times.every((at) => now - at >= RATE_LIMIT_WINDOW_MS)) recentCalls.delete(key);
+    }
+  }
+  return true;
+}
+
 serve(async (req) => {
   // Browsers send an OPTIONS preflight first — allow it without auth
   if (req.method === "OPTIONS") {
@@ -69,6 +95,14 @@ serve(async (req) => {
       );
     }
 
+    // ── 2b. Throttle before spending money ──
+    if (!withinRateLimit(user.id)) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // ── 3. Parse the request ──
     const { percentMet, streakDays, mood } = await req.json();
 
@@ -91,16 +125,36 @@ Stay in character: theatrical, a little passive-aggressive when hydration is low
       ],
     });
 
-    const pipLine = message.content[0].text;
+    // message.content is a union of block types; indexing [0] and reading .text throws on
+    // anything that is not a text block.
+    const textBlock = (message.content as Array<{ type: string; text?: string }>).find(
+      (part) => part.type === "text",
+    );
+    if (!textBlock?.text) {
+      throw new Error("Anthropic returned no text block");
+    }
+    const pipLine = textBlock.text;
 
     return new Response(JSON.stringify({ pipLine }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("pip-chat error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Log the detail, hand the browser a generic message. This used to return
+    // error.message verbatim, which passed the upstream provider error (including its
+    // request id) straight through to the client.
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error("pip-chat error:", detail);
+    const upstreamUnavailable =
+      /credit balance|insufficient|quota|rate.?limit|overloaded|api key/i.test(detail);
+    return new Response(
+      JSON.stringify({
+        error: "Pip is speechless right now",
+        degraded: true,
+      }),
+      {
+        status: upstreamUnavailable ? 503 : 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });

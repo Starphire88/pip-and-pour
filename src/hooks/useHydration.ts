@@ -27,8 +27,16 @@ async function syncAfterLogChange(userId: string, queryClient: QueryClient) {
   const settings = await fetchUserSettings(userId);
   const goal = settings?.daily_goal_ml ?? DEFAULT_GOAL;
 
-  await syncStreakWithTodayTotal(userId, todayTotal, goal);
-  await queryClient.invalidateQueries({ queryKey: hydrationKeys.streak(userId) });
+  // The drink is already saved at this point. If the streak bookkeeping fails, the
+  // mutation must still count as a success, otherwise the user sees "failed" for a
+  // drink that was written and logs it a second time.
+  try {
+    await syncStreakWithTodayTotal(userId, todayTotal, goal);
+  } catch (error) {
+    console.error("hydration: streak sync failed", error);
+  } finally {
+    await queryClient.invalidateQueries({ queryKey: hydrationKeys.streak(userId) });
+  }
 }
 
 function useUserId() {
@@ -149,9 +157,24 @@ export function useUpsertDailyGoal() {
     },
   });
 }
+/** Pip's line only changes meaningfully every few percent, and every request costs money. */
+const PIP_LINE_PERCENT_BUCKET = 10;
+
 export function usePipLine(percentMet: number, streakDays: number, mood: string) {
+  // Quantising the percentage means a call per 10% band rather than a call per logged
+  // drink, and the cached line is reused when the user navigates back to the home screen.
+  const bucket = Math.max(0, Math.floor(percentMet / PIP_LINE_PERCENT_BUCKET) * PIP_LINE_PERCENT_BUCKET);
+
   return useQuery({
-    queryKey: ["pipLine", percentMet, streakDays, mood],
-    queryFn: () => getPipLine(percentMet, streakDays, mood),
+    queryKey: ["pipLine", bucket, streakDays, mood],
+    queryFn: () => getPipLine(bucket, streakDays, mood),
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    // 403 (no Pip account yet) and 401 are terminal; only retry a server-side wobble once.
+    retry: (attempt, error) => {
+      const status = (error as { context?: { status?: number } } | null)?.context?.status ?? 0;
+      if (status >= 400 && status < 500) return false;
+      return attempt < 1;
+    },
   });
 }

@@ -1,5 +1,13 @@
 import { supabase } from "@/lib/supabase";
 
+/** A single drink, in whole millilitres. Matches the range the UI offers. */
+const MIN_LOG_ML = 1;
+const MAX_LOG_ML = 5000;
+
+/** Daily goal bounds. Mirrors the check constraint in supabase/migrations/0001_init.sql. */
+const MIN_GOAL_ML = 500;
+const MAX_GOAL_ML = 5000;
+
 export type UserSettings = {
   id: string;
   user_id: string;
@@ -23,6 +31,10 @@ export type HydrationLog = {
   amount_ml: number;
   logged_at: string;
 };
+
+export function isValidLogAmount(amountMl: number): boolean {
+  return Number.isInteger(amountMl) && amountMl >= MIN_LOG_ML && amountMl <= MAX_LOG_ML;
+}
 
 function getTodayBounds() {
   const now = new Date();
@@ -97,6 +109,14 @@ export async function fetchStreak(userId: string): Promise<Streak | null> {
 }
 
 export async function insertHydrationLog(userId: string, amountMl: number) {
+  // The live database has no check constraint on amount_ml (see migration 0002),
+  // so this guard is the only thing stopping a negative or absurd row being written.
+  if (!isValidLogAmount(amountMl)) {
+    throw new Error(
+      `A drink has to be a whole number of millilitres between ${MIN_LOG_ML} and ${MAX_LOG_ML}.`,
+    );
+  }
+
   const { error } = await supabase.from("hydration_logs").insert({
     user_id: userId,
     amount_ml: amountMl,
@@ -124,7 +144,11 @@ export async function deleteHydrationLog(logId: string) {
 }
 
 export async function upsertDailyGoal(userId: string, dailyGoalMl: number): Promise<UserSettings> {
-  const goal = Math.max(500, Math.min(5000, dailyGoalMl));
+  if (!Number.isFinite(dailyGoalMl)) {
+    throw new Error("Your daily goal has to be a number.");
+  }
+
+  const goal = Math.max(MIN_GOAL_ML, Math.min(MAX_GOAL_ML, Math.round(dailyGoalMl)));
 
   const { data, error } = await supabase
     .from("user_settings")
@@ -136,7 +160,36 @@ export async function upsertDailyGoal(userId: string, dailyGoalMl: number): Prom
   return data;
 }
 
-export async function syncStreakWithTodayTotal(userId: string, todayTotal: number, dailyGoalMl: number) {
+/**
+ * Streak sync is a read-modify-write with no database transaction behind it, so two
+ * calls that overlap (a double-tap on "Log a Drink", two tabs, phone and laptop) can
+ * both read the same streak and both write the same increment, losing one, or both
+ * decide "today has not counted yet" and add two days. Running every sync through a
+ * single promise chain makes each one see the previous one's write.
+ *
+ * This serialises within one tab. It cannot serialise across devices; the durable fix
+ * is an atomic Postgres function (see supabase/migrations/0002_schema_reconciliation.sql).
+ */
+let streakSyncQueue: Promise<void> = Promise.resolve();
+
+export function syncStreakWithTodayTotal(
+  userId: string,
+  todayTotal: number,
+  dailyGoalMl: number,
+): Promise<void> {
+  const run = streakSyncQueue.then(
+    () => syncStreakWithTodayTotalNow(userId, todayTotal, dailyGoalMl),
+    () => syncStreakWithTodayTotalNow(userId, todayTotal, dailyGoalMl),
+  );
+  streakSyncQueue = run.catch(() => undefined);
+  return run;
+}
+
+async function syncStreakWithTodayTotalNow(
+  userId: string,
+  todayTotal: number,
+  dailyGoalMl: number,
+) {
   const today = todayDateString();
   const yesterday = yesterdayDateString();
   const now = new Date().toISOString();
@@ -191,5 +244,13 @@ export async function getPipLine(percentMet: number, streakDays: number, mood: s
   });
 
   if (error) throw error;
-  return data.pipLine;
+
+  // The edge function can return a 200 with an unexpected body; without this guard
+  // the caller writes `undefined` into Pip's speech bubble.
+  const pipLine = (data as { pipLine?: unknown } | null)?.pipLine;
+  if (typeof pipLine !== "string" || pipLine.trim() === "") {
+    throw new Error("pip-chat returned no line");
+  }
+
+  return pipLine;
 }

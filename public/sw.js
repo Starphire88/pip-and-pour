@@ -3,7 +3,7 @@
 // Navigations are network-first (always fresh when online); hashed build assets are cache-first.
 // Supabase and other cross-origin calls are never cached.
 
-const VERSION = "pip-pour-v1";
+const VERSION = "pip-pour-v2";
 const SHELL = "/";
 const PRECACHE = [
   "/",
@@ -48,7 +48,11 @@ async function networkFirstNavigation(request) {
   try {
     const response = await fetch(request);
     if (response && response.ok) {
-      cache.put(SHELL, response.clone());
+      // Cache the response under its own URL. Do NOT overwrite SHELL here: the shell is
+      // the precached "/" document, and overwriting it with whichever page was visited
+      // last (a login screen, a settings page) degrades the offline fallback for every
+      // route and lets an update ship a stale document under the shell key.
+      cache.put(request, response.clone());
     }
     return response;
   } catch (error) {
