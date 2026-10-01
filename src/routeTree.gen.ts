@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StreakRouteImport } from './routes/streak'
 import { Route as LogRouteImport } from './routes/log'
+import { Route as BuddiesRouteImport } from './routes/buddies'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
@@ -25,6 +26,11 @@ const StreakRoute = StreakRouteImport.update({
 const LogRoute = LogRouteImport.update({
   id: '/log',
   path: '/log',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuddiesRoute = BuddiesRouteImport.update({
+  id: '/buddies',
+  path: '/buddies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,6 +61,7 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/buddies': typeof BuddiesRoute
   '/log': typeof LogRoute
   '/streak': typeof StreakRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/buddies': typeof BuddiesRoute
   '/log': typeof LogRoute
   '/streak': typeof StreakRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/buddies': typeof BuddiesRoute
   '/log': typeof LogRoute
   '/streak': typeof StreakRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/buddies'
     | '/log'
     | '/streak'
     | '/auth/forgot-password'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/buddies'
     | '/log'
     | '/streak'
     | '/auth/forgot-password'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/buddies'
     | '/log'
     | '/streak'
     | '/auth/forgot-password'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BuddiesRoute: typeof BuddiesRoute
   LogRoute: typeof LogRoute
   StreakRoute: typeof StreakRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/log'
       fullPath: '/log'
       preLoaderRoute: typeof LogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buddies': {
+      id: '/buddies'
+      path: '/buddies'
+      fullPath: '/buddies'
+      preLoaderRoute: typeof BuddiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BuddiesRoute: BuddiesRoute,
   LogRoute: LogRoute,
   StreakRoute: StreakRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
