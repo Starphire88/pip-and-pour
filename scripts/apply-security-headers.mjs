@@ -72,6 +72,13 @@ const addedRoutes = [
       "X-Frame-Options": "DENY",
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "geolocation=(), microphone=(), camera=(), payment=(), usb=()",
+      // Added 2026-10-01: was missing. Tells the browser to refuse plain HTTP for this
+      // origin for a year, which closes the SSL-strip window on the first request.
+      // Safe here because Vercel terminates TLS and the domain is HTTPS-only.
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+      // Legacy XSS filter off: it was removed from all browsers and, when it did exist,
+      // it introduced its own issues. CSP above is the real control.
+      "X-XSS-Protection": "0",
     },
     continue: true,
   },
