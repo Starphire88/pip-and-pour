@@ -117,7 +117,9 @@ Stay in character: theatrical, a little passive-aggressive when hydration is low
     });
 
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      // Dateless alias, not the pinned snapshot: claude-haiku-4-5-20251001 retires 2026-10-15,
+      // and the alias always resolves to the newest snapshot for this minor version.
+      model: "claude-haiku-4-5",
       max_tokens: 100,
       system: systemPrompt,
       messages: [
