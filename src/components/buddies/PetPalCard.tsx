@@ -44,19 +44,19 @@ export function PetPalCard({
       </div>
 
       {pal ? (
-        <div className="mt-2 flex items-center gap-2">
-          <span aria-hidden className="text-[30px] leading-none">
+        <div className="mt-2 flex items-start gap-1.5">
+          <span aria-hidden className="text-[26px] leading-none shrink-0">
             {pal.emoji}
           </span>
           <div className="min-w-0">
             <div
-              className="text-[14px] font-bold text-[#1A1A1A] truncate"
+              className="text-[13px] font-bold leading-tight text-[#1A1A1A]"
               style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
             >
               {pal.name}
             </div>
             <div
-              className="text-[10px] text-[#6B6B6B] truncate"
+              className="text-[9px] leading-tight text-[#6B6B6B]"
               style={{ fontFamily: "Inter, system-ui, sans-serif" }}
             >
               {pal.personality.join(" · ")}
