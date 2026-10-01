@@ -129,3 +129,41 @@ Multiple buddies, buddy groups, private or weekly competitions, Pet Pal animatio
 rescue notifications, buddy XP, team levels, seasonal challenges, invitations, realtime sync, push
 notifications, buddy achievements, shared rewards, public leaderboards, feeds and messaging. The
 MVP tests one hypothesis: does shared accountability make Pip more engaging than solo tracking?
+
+## 8. Verification (1 October 2026)
+
+Local gate, all green: `bun run test` 62/62, `tsc --noEmit` clean, eslint clean, `bun run build`
+exit 0. Deployed check ran against the live site `https://pip-and-pour.vercel.app` using Ashley's
+real signed-in session, driven headlessly with Playwright over CDP (profile
+`~/.hermes/browser-profiles/chrome-ashley`, port 9334). Evidence screenshots in
+`~/.hermes/cache/pip-qa/evidence/`.
+
+| Test | What was done | Observed |
+| --- | --- | --- |
+| D. Pet Pal persistence | Don set to Dolphin, page reloaded | Dolphin persisted. Set to Elephant, reloaded: Elephant persisted. Set back to Dolphin, reloaded: Dolphin persisted, badge reads `chosen` |
+| A. Cooperative goal | Don moved to 100%, Ashley logged to 100% | Today 2/2, Team Progress 100%, Buddy Streak 0 → 1 day, Ashley's own streak 0 → 1d, Don's own 11 → 12d, both Pet Pals `Buddy complete`, result card "You both showed up today. Team Goal: 100%." |
+| B. One falls behind | Don moved to 60% | Today 1/2, Team Progress 80%, Buddy Streak reset to 0 while Ashley's own streak stayed 1d and Don's stayed 11d, `Encourage Don` unlocked, one nudge recorded, button then reported it had been sent |
+| C. Friendly race | Race toggled on with Ashley at 100% and Don at 60%, then Don finished | In progress: "Ashley has finished their own goal. The race is not decided until the other person finishes, and nobody loses XP either way." Complete: "Ashley got there first. Both goals are done, so the Buddy Streak still counts." Buddy Streak 1, Team Progress 100% |
+
+Other checks: zero console errors and zero page errors across `/buddies`, `/`, `/streak` and
+`/log` (only pre-existing Vite preload warnings). No horizontal overflow at 390 px or 360 px, no
+offending elements. Test data hygiene: the single 2,000 ml log used to reach Ashley's goal was
+deleted afterwards, and her home screen returned to 0 / 2,000 ml, streak 0d, XP 910, history back
+to its original 71 rows. Don's prototype state was reset to the seeded baseline (1,200 / 2,500 =
+48%), his Pet Pal was left as Dolphin, and the race toggle was left off.
+
+## 9. Known issues and technical debt
+
+1. Don's seeded history has no counterpart on Ashley's real side, so the Buddy Streak reads 0 until
+   today is completed by both. The shared 12-day run in the brief cannot be displayed yet. Either
+   seed a matched pair or wait for real days to accumulate.
+2. The race outcome sentence renders twice when the race is enabled and the day is complete, once
+   in the Goal Race block and once in the Buddy Challenge Complete card. Cosmetic.
+3. One relationship only. The store is keyed by member id and would take a second pair, but the
+   hook resolves a single relationship, so multi-buddy needs a route-level selector.
+4. Don's side lives in `localStorage` on one device, so "Don" is a simulation, not a second person.
+   Two real accounts is the change that makes the hypothesis testable for real.
+5. `0005_streak_buddies.sql` is unapplied, so nothing is shared across devices.
+6. Pet Pals carry identity and a status word, no animation or reaction.
+7. Buddy Streak anchors at today when today is complete, otherwise at yesterday, so it survives the
+   first hours of a new day. Only the local timezone has been exercised.
