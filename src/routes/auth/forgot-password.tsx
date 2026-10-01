@@ -110,17 +110,16 @@ function ForgotPasswordPage() {
       {sent ? (
         <div className="space-y-4">
           <AuthNotice tone="success">
-            If an account exists for {email.trim()}, a reset link is on its way. The link can only be used once and
-            expires in 1 hour.
+            If an account exists for {email.trim()}, a reset link is on its way. The link can only
+            be used once and expires in 1 hour.
           </AuthNotice>
-          <p className="text-[13px] text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+          <p
+            className="text-[13px] text-[#6B6B6B]"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+          >
             Nothing after a few minutes? Check your spam folder, then try again below.
           </p>
-          <AuthSubmit
-            type="button"
-            onClick={() => setSent(false)}
-            disabled={cooldown > 0}
-          >
+          <AuthSubmit type="button" onClick={() => setSent(false)} disabled={cooldown > 0}>
             {cooldown > 0 ? `Send again in ${cooldown}s` : "Send again"}
           </AuthSubmit>
         </div>
@@ -140,7 +139,11 @@ function ForgotPasswordPage() {
           {error && <AuthNotice tone="error">{error}</AuthNotice>}
 
           <AuthSubmit disabled={submitting || cooldown > 0 || !email.trim()}>
-            {submitting ? "Sending…" : cooldown > 0 ? `Send again in ${cooldown}s` : "Send reset link"}
+            {submitting
+              ? "Sending…"
+              : cooldown > 0
+                ? `Send again in ${cooldown}s`
+                : "Send reset link"}
           </AuthSubmit>
         </form>
       )}

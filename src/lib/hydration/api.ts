@@ -102,7 +102,11 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings | 
 }
 
 export async function fetchStreak(userId: string): Promise<Streak | null> {
-  const { data, error } = await supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle();
+  const { data, error } = await supabase
+    .from("streaks")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
 
   if (error) throw error;
   return data;
@@ -152,7 +156,10 @@ export async function upsertDailyGoal(userId: string, dailyGoalMl: number): Prom
 
   const { data, error } = await supabase
     .from("user_settings")
-    .upsert({ user_id: userId, daily_goal_ml: goal, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+    .upsert(
+      { user_id: userId, daily_goal_ml: goal, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" },
+    )
     .select()
     .single();
 
@@ -223,8 +230,7 @@ async function syncStreakWithTodayTotalNow(
 
   if (nextCurrentStreak === currentStreak && nextLastLoggedDate === lastLoggedDate) return;
 
-  const nextLongestStreak =
-    nextCurrentStreak > longestStreak ? nextCurrentStreak : longestStreak;
+  const nextLongestStreak = nextCurrentStreak > longestStreak ? nextCurrentStreak : longestStreak;
 
   const { error } = await supabase.from("streaks").upsert(
     {
@@ -238,7 +244,11 @@ async function syncStreakWithTodayTotalNow(
   );
   if (error) throw error;
 }
-export async function getPipLine(percentMet: number, streakDays: number, mood: string): Promise<string> {
+export async function getPipLine(
+  percentMet: number,
+  streakDays: number,
+  mood: string,
+): Promise<string> {
   const { data, error } = await supabase.functions.invoke("pip-chat", {
     body: { percentMet, streakDays, mood },
   });

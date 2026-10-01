@@ -1,6 +1,9 @@
 import { useSyncExternalStore } from "react";
 
-export function pipMood(percent: number, streakBroken: boolean): "sad" | "neutral" | "happy" | "collapsed" {
+export function pipMood(
+  percent: number,
+  streakBroken: boolean,
+): "sad" | "neutral" | "happy" | "collapsed" {
   if (streakBroken) return "collapsed";
   if (percent >= 75) return "happy";
   if (percent >= 50) return "neutral";
@@ -8,7 +11,8 @@ export function pipMood(percent: number, streakBroken: boolean): "sad" | "neutra
 }
 
 export function pipLine(percent: number, total: number, streakBroken: boolean): string {
-  if (streakBroken) return "The streak is gone. It's fine. Pip has known sadness before. Today is a new day.";
+  if (streakBroken)
+    return "The streak is gone. It's fine. Pip has known sadness before. Today is a new day.";
   if (total === 0) return "No water logged yet. Pip is... fine. Totally fine.";
   if (percent >= 100) return "FULL HYDRATION ACHIEVED. Pip is glowing. You did this. WE did this.";
   if (percent >= 75) return "So close. Pip is vibrating with anticipation.";
@@ -44,7 +48,11 @@ export function clearPipLineOverride() {
 }
 
 export function usePipLineOverride() {
-  return useSyncExternalStore(subscribeLineOverride, getLineOverrideSnapshot, getLineOverrideSnapshot);
+  return useSyncExternalStore(
+    subscribeLineOverride,
+    getLineOverrideSnapshot,
+    getLineOverrideSnapshot,
+  );
 }
 
 export function formatRelative(ts: number | null): string {

@@ -47,11 +47,19 @@ function StreakPage() {
   return (
     <MobileShell>
       <header className="px-5 pt-5">
-        <h1 style={{ fontFamily: "Nunito, system-ui, sans-serif" }} className="text-[22px] font-bold text-[#1A1A1A]">
+        <h1
+          style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
+          className="text-[22px] font-bold text-[#1A1A1A]"
+        >
           Streak & Evolution
         </h1>
-        <p className="text-[13px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-          {streakBroken ? "The streak was lost. Begin again." : "Pip levels up the longer you stay hydrated."}
+        <p
+          className="text-[13px] text-[#6B6B6B] mt-1"
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
+          {streakBroken
+            ? "The streak was lost. Begin again."
+            : "Pip levels up the longer you stay hydrated."}
         </p>
       </header>
 
@@ -59,10 +67,16 @@ function StreakPage() {
         <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 flex flex-col items-center">
           <PipImage mood={mood} size={180} className="pip-float" />
           <div className="mt-3 text-center">
-            <h2 style={{ fontFamily: "Nunito, system-ui, sans-serif" }} className="text-[18px] font-bold text-[#1A1A1A]">
+            <h2
+              style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
+              className="text-[18px] font-bold text-[#1A1A1A]"
+            >
               {streakBroken ? "Fallen Sage" : stage.name}
             </h2>
-            <p className="text-[14px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+            <p
+              className="text-[14px] text-[#6B6B6B] mt-1"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
               {streak} day streak
             </p>
             <p
@@ -76,7 +90,10 @@ function StreakPage() {
       </section>
 
       <section className="px-5 mt-6">
-        <p className="text-[12px] uppercase tracking-wider text-[#6B6B6B] mb-3" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+        <p
+          className="text-[12px] uppercase tracking-wider text-[#6B6B6B] mb-3"
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
           Milestones
         </p>
         <div className="relative">
@@ -92,8 +109,8 @@ function StreakPage() {
                       active
                         ? "bg-[#A8D5E2] border-[#1A1A1A]"
                         : reached
-                        ? "bg-[#1A1A1A] border-[#1A1A1A]"
-                        : "bg-white border-[#E8E8E8]"
+                          ? "bg-[#1A1A1A] border-[#1A1A1A]"
+                          : "bg-white border-[#E8E8E8]"
                     }`}
                   />
                   <div
@@ -102,7 +119,10 @@ function StreakPage() {
                   >
                     {s.name}
                   </div>
-                  <div className="text-[10px] text-[#9A9A9A] mt-0.5" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                  <div
+                    className="text-[10px] text-[#9A9A9A] mt-0.5"
+                    style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                  >
                     {s.minDays}d
                   </div>
                 </div>

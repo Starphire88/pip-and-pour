@@ -84,7 +84,10 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
           </button>
         </div>
 
-        <p className="mt-2 text-[13px] text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+        <p
+          className="mt-2 text-[13px] text-[#6B6B6B]"
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
           How much water should Pip expect from you each day?
         </p>
 
@@ -112,7 +115,10 @@ export function SettingsModal({ open, onClose }: { open: boolean; onClose: () =>
             style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
           />
           {(validationError || submitError) && (
-            <p className="mt-2 text-[13px] text-red-600" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+            <p
+              className="mt-2 text-[13px] text-red-600"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
               {validationError ?? submitError}
             </p>
           )}

@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronDown, RotateCcw, Trophy } from "lucide-react";
+import { Check, ChevronDown, Copy, RotateCcw, Trophy } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Confetti } from "@/components/Confetti";
 import { MobileShell } from "@/components/MobileShell";
 import { RequireAuth } from "@/components/RequireAuth";
+import { BuddyLinkCard } from "@/components/buddies/BuddyLinkCard";
 import { MemberProgressCard } from "@/components/buddies/MemberProgressCard";
 import { PetPalCard } from "@/components/buddies/PetPalCard";
 import { SegmentedBar } from "@/components/buddies/SegmentedBar";
-import { useStreakBuddies } from "@/hooks/useStreakBuddies";
+import { useStreakBuddies, type StreakBuddiesViewModel } from "@/hooks/useStreakBuddies";
 import { BUDDY_PET_PAL_IDS, SELECTABLE_PET_PAL_IDS, getPetPal } from "@/lib/buddies/pet-pals";
 
 export const Route = createFileRoute("/buddies")({
@@ -34,7 +35,7 @@ function BuddiesRoute() {
 }
 
 function BuddiesPage() {
-  const { ready, dashboard, actions } = useStreakBuddies();
+  const { ready, dashboard, actions, link } = useStreakBuddies();
   const [editing, setEditing] = useState<"self" | "buddy">("buddy");
   const [controlsOpen, setControlsOpen] = useState(false);
 
@@ -55,7 +56,10 @@ function BuddiesPage() {
     dashboard;
   const buddyPal = getPetPal(buddy.petPalId);
   const bothComplete = todayCount === 2;
-  const pickerOptions = editing === "self" ? SELECTABLE_PET_PAL_IDS : BUDDY_PET_PAL_IDS;
+  // A live pairing only ever lets you change your OWN Pet Pal: the buddy sets his from his
+  // own account. The local demo still lets you drive both sides.
+  const activeEditing = link.live ? "self" : editing;
+  const pickerOptions = activeEditing === "self" ? SELECTABLE_PET_PAL_IDS : BUDDY_PET_PAL_IDS;
 
   return (
     <MobileShell>
@@ -75,6 +79,42 @@ function BuddiesPage() {
           {self.name} + {buddy.name} · shared accountability, separate goals
         </p>
       </header>
+
+      {link.live ? (
+        <section className="px-5 mt-4">
+          <div className="flex items-center justify-between gap-2 rounded-2xl border border-[#A8D5E2] bg-[#F2FAFD] px-3 py-2.5">
+            <span
+              className="flex items-center gap-2 text-[12px] text-[#1A1A1A]"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              <span className="inline-block h-2 w-2 rounded-full bg-[#4CAF50]" />
+              Live pairing · both accounts connected
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`Disconnect from ${buddy.name}? Individual progress stays.`)) {
+                  link.leave();
+                }
+              }}
+              className="rounded-lg px-2 py-1 text-[11px] text-[#6B6B6B] underline active:bg-white"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              Disconnect
+            </button>
+          </div>
+          {link.error && (
+            <p
+              className="mt-2 text-[11px] text-[#B3413B]"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              {link.error}
+            </p>
+          )}
+        </section>
+      ) : (
+        <BuddyLinkCard link={link} buddyName={buddy.name} />
+      )}
 
       {/* ---------------------------------------------------------------- Pet Pals */}
       <section className="px-5 mt-5">
@@ -102,40 +142,48 @@ function BuddiesPage() {
               className="text-[12px] text-[#6B6B6B]"
               style={{ fontFamily: "Inter, system-ui, sans-serif" }}
             >
-              {buddy.petPalId === null
-                ? `${buddy.name} has not chosen yet. Pick one for the test:`
-                : `Change a Pet Pal`}
+              {link.live
+                ? buddy.petPalId === null
+                  ? `${buddy.name} chooses his own Pet Pal from his own account.`
+                  : `You can change your own Pet Pal here. ${buddy.name} set his own.`
+                : buddy.petPalId === null
+                  ? `${buddy.name} has not chosen yet. Pick one for the test:`
+                  : `Change a Pet Pal`}
             </span>
-            <div className="flex gap-1 rounded-full border border-[#E8E8E8] bg-white p-1">
-              {(["self", "buddy"] as const).map((who) => (
-                <button
-                  key={who}
-                  type="button"
-                  onClick={() => setEditing(who)}
-                  aria-pressed={editing === who}
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                    editing === who ? "bg-[#1A1A1A] text-white" : "text-[#6B6B6B]"
-                  }`}
-                  style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-                >
-                  {who === "self" ? "You" : buddy.name}
-                </button>
-              ))}
-            </div>
+            {!link.live && (
+              <div className="flex gap-1 rounded-full border border-[#E8E8E8] bg-white p-1">
+                {(["self", "buddy"] as const).map((who) => (
+                  <button
+                    key={who}
+                    type="button"
+                    onClick={() => setEditing(who)}
+                    aria-pressed={editing === who}
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                      editing === who ? "bg-[#1A1A1A] text-white" : "text-[#6B6B6B]"
+                    }`}
+                    style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                  >
+                    {who === "self" ? "You" : buddy.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="mt-3 grid grid-cols-1 gap-2">
             {pickerOptions.map((id) => {
               const option = getPetPal(id);
               if (!option) return null;
-              const current = editing === "self" ? self.petPalId : buddy.petPalId;
+              const current = activeEditing === "self" ? self.petPalId : buddy.petPalId;
               const active = current === id;
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() =>
-                    editing === "self" ? actions.chooseOwnPetPal(id) : actions.chooseBuddyPetPal(id)
+                    activeEditing === "self"
+                      ? actions.chooseOwnPetPal(id)
+                      : actions.chooseBuddyPetPal(id)
                   }
                   aria-pressed={active}
                   className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
@@ -425,74 +473,76 @@ function BuddiesPage() {
         </div>
       </section>
 
-      {/* ---------------------------------------------------------- prototype controls */}
-      <section className="px-5 mt-6">
-        <Collapsible open={controlsOpen} onOpenChange={setControlsOpen}>
-          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border border-[#E8E8E8] bg-[#F9F9F9] px-4 py-3 active:bg-[#F0F0F0]">
-            <span
-              className="text-[13px] font-bold text-[#1A1A1A]"
-              style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
-            >
-              Prototype controls
-            </span>
-            <ChevronDown
-              size={18}
-              className={`text-[#6B6B6B] transition-transform ${controlsOpen ? "rotate-180" : ""}`}
-            />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2 rounded-xl border border-[#E8E8E8] bg-white px-4 py-3">
-            <p
-              className="text-[11px] text-[#6B6B6B]"
-              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-            >
-              Moves the mocked buddy's intake so the cooperative, falling-behind and race states can
-              be tested. Delete this block when a second real account exists.
-            </p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {[
-                { label: "0%", value: 0 },
-                { label: "60%", value: Math.round(buddy.hydrationGoalMl * 0.6) },
-                { label: "100%", value: buddy.hydrationGoalMl },
-              ].map((preset) => (
-                <button
-                  key={preset.label}
-                  type="button"
-                  onClick={() => actions.setBuddyTodayMl(preset.value)}
-                  className="h-11 rounded-xl border border-[#1A1A1A] bg-white text-[13px] font-bold text-[#1A1A1A] active:scale-[0.98]"
-                  style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-2">
+      {/* ---------------------------------------------- prototype controls (demo only) */}
+      {!link.live && (
+        <section className="px-5 mt-6">
+          <Collapsible open={controlsOpen} onOpenChange={setControlsOpen}>
+            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-xl border border-[#E8E8E8] bg-[#F9F9F9] px-4 py-3 active:bg-[#F0F0F0]">
               <span
+                className="text-[13px] font-bold text-[#1A1A1A]"
+                style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
+              >
+                Prototype controls
+              </span>
+              <ChevronDown
+                size={18}
+                className={`text-[#6B6B6B] transition-transform ${controlsOpen ? "rotate-180" : ""}`}
+              />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 rounded-xl border border-[#E8E8E8] bg-white px-4 py-3">
+              <p
                 className="text-[11px] text-[#6B6B6B]"
                 style={{ fontFamily: "Inter, system-ui, sans-serif" }}
               >
-                {buddy.name} today: {buddy.totalMl} / {buddy.hydrationGoalMl} ml
-              </span>
-              <button
-                type="button"
-                onClick={actions.resetPrototype}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[#6B6B6B] active:bg-[#F9F9F9]"
-                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-              >
-                <RotateCcw size={13} /> Reset prototype data
-              </button>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+                Moves the mocked buddy's intake so the cooperative, falling-behind and race states
+                can be tested. This block disappears on its own once two real accounts are paired.
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {[
+                  { label: "0%", value: 0 },
+                  { label: "60%", value: Math.round(buddy.hydrationGoalMl * 0.6) },
+                  { label: "100%", value: buddy.hydrationGoalMl },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => actions.setBuddyTodayMl(preset.value)}
+                    className="h-11 rounded-xl border border-[#1A1A1A] bg-white text-[13px] font-bold text-[#1A1A1A] active:scale-[0.98]"
+                    style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <span
+                  className="text-[11px] text-[#6B6B6B]"
+                  style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                >
+                  {buddy.name} today: {buddy.totalMl} / {buddy.hydrationGoalMl} ml
+                </span>
+                <button
+                  type="button"
+                  onClick={actions.resetPrototype}
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[#6B6B6B] active:bg-[#F9F9F9]"
+                  style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                >
+                  <RotateCcw size={13} /> Reset prototype data
+                </button>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-        <p
-          className="mt-3 text-[10px] leading-relaxed text-[#9A9A9A]"
-          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-        >
-          Prototype: your own hydration, streak and XP are live Supabase data. {buddy.name}'s side
-          (intake, Pet Pal, shared streak history, encouragements) is stored on this device only,
-          keyed to relationship {relationship.id}.
-        </p>
-      </section>
+          <p
+            className="mt-3 text-[10px] leading-relaxed text-[#9A9A9A]"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+          >
+            Prototype: your own hydration, streak and XP are live Supabase data. {buddy.name}'s side
+            (intake, Pet Pal, shared streak history, encouragements) is stored on this device only,
+            keyed to relationship {relationship.id}.
+          </p>
+        </section>
+      )}
     </MobileShell>
   );
 }

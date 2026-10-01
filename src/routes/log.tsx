@@ -42,10 +42,16 @@ function LogPage() {
   return (
     <MobileShell>
       <header className="px-5 pt-5">
-        <h1 style={{ fontFamily: "Nunito, system-ui, sans-serif" }} className="text-[22px] font-bold text-[#1A1A1A]">
+        <h1
+          style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
+          className="text-[22px] font-bold text-[#1A1A1A]"
+        >
           Log a Drink
         </h1>
-        <p className="text-[13px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+        <p
+          className="text-[13px] text-[#6B6B6B] mt-1"
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
           {total} of {goal} ml today · {percent}%
         </p>
       </header>
@@ -69,7 +75,10 @@ function LogPage() {
                 style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
               >
                 <div className="text-[26px] font-bold text-[#1A1A1A] leading-none">{amt}</div>
-                <div className="text-[12px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                <div
+                  className="text-[12px] text-[#6B6B6B] mt-1"
+                  style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                >
                   milliliters
                 </div>
               </button>
@@ -79,7 +88,10 @@ function LogPage() {
       </section>
 
       <section className="px-5 mt-6">
-        <label className="text-[12px] uppercase tracking-wider text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+        <label
+          className="text-[12px] uppercase tracking-wider text-[#6B6B6B]"
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
           Custom Amount
         </label>
         <div className="mt-2 flex gap-2">

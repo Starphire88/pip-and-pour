@@ -15,7 +15,10 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-[14px] text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+        <p
+          className="text-[14px] text-[#6B6B6B]"
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
           Loading…
         </p>
       </div>

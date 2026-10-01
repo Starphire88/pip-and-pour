@@ -15,9 +15,19 @@ export function ProgressRing({
   const circ = 2 * Math.PI * radius;
   const offset = circ - (Math.min(percent, 100) / 100) * circ;
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#E8E8E8" strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#E8E8E8"
+          strokeWidth={stroke}
+        />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -38,7 +48,10 @@ export function ProgressRing({
         >
           {percent}%
         </span>
-        <span className="mt-1 text-[12px] text-[#6B6B6B]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+        <span
+          className="mt-1 text-[12px] text-[#6B6B6B]"
+          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+        >
           {total} / {goal} ml
         </span>
       </div>

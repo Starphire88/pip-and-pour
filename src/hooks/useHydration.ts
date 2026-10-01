@@ -163,7 +163,10 @@ const PIP_LINE_PERCENT_BUCKET = 10;
 export function usePipLine(percentMet: number, streakDays: number, mood: string) {
   // Quantising the percentage means a call per 10% band rather than a call per logged
   // drink, and the cached line is reused when the user navigates back to the home screen.
-  const bucket = Math.max(0, Math.floor(percentMet / PIP_LINE_PERCENT_BUCKET) * PIP_LINE_PERCENT_BUCKET);
+  const bucket = Math.max(
+    0,
+    Math.floor(percentMet / PIP_LINE_PERCENT_BUCKET) * PIP_LINE_PERCENT_BUCKET,
+  );
 
   return useQuery({
     queryKey: ["pipLine", bucket, streakDays, mood],

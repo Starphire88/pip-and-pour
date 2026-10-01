@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 const COLORS = ["#A8D5E2", "#7BAE7F", "#F2C57E", "#F4B8B8", "#1A1A1A"];
 
 export function Confetti({ show }: { show: boolean }) {
-  const [pieces, setPieces] = useState<Array<{ id: number; left: number; x: number; delay: number; color: string; size: number }>>([]);
+  const [pieces, setPieces] = useState<
+    Array<{ id: number; left: number; x: number; delay: number; color: string; size: number }>
+  >([]);
 
   useEffect(() => {
     if (!show) return;

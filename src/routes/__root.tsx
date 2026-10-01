@@ -87,7 +87,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+      },
       { name: "application-name", content: "Pip & Pour" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Pip & Pour" },
@@ -95,15 +98,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "format-detection", content: "telephone=no" },
       { title: "Pip the Panda — Hydration Tracker" },
-      { name: "description", content: "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy." },
+      {
+        name: "description",
+        content:
+          "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy.",
+      },
       { name: "theme-color", content: "#FFFFFF" },
       { property: "og:title", content: "Pip the Panda — Hydration Tracker" },
-      { property: "og:description", content: "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy." },
+      {
+        property: "og:description",
+        content:
+          "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Pip the Panda — Hydration Tracker" },
-      { name: "twitter:description", content: "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/k6Zb446vlMYjp6rFO3rYyk3QwhH2/social-images/social-1781598116936-lucid-origin_Create_a_cute_giant_panda_mascot_character_named_Pip_chibi-style_illustration_la-0.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/k6Zb446vlMYjp6rFO3rYyk3QwhH2/social-images/social-1781598116936-lucid-origin_Create_a_cute_giant_panda_mascot_character_named_Pip_chibi-style_illustration_la-0.webp" },
+      {
+        name: "twitter:description",
+        content:
+          "Pip is a sassy panda who reacts to your water intake. Stay hydrated, keep your streak, keep Pip happy.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/k6Zb446vlMYjp6rFO3rYyk3QwhH2/social-images/social-1781598116936-lucid-origin_Create_a_cute_giant_panda_mascot_character_named_Pip_chibi-style_illustration_la-0.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/k6Zb446vlMYjp6rFO3rYyk3QwhH2/social-images/social-1781598116936-lucid-origin_Create_a_cute_giant_panda_mascot_character_named_Pip_chibi-style_illustration_la-0.webp",
+      },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
@@ -114,7 +137,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,

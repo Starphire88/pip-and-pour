@@ -85,7 +85,10 @@ function LoginPage() {
         </div>
 
         {error && (
-          <p className="text-[13px] text-[#C44]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+          <p
+            className="text-[13px] text-[#C44]"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+          >
             {error}
           </p>
         )}

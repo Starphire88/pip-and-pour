@@ -19,7 +19,8 @@ export function Onboarding({
             style={{ fontFamily: "Nunito, system-ui, sans-serif" }}
             className="italic text-[15px] leading-relaxed text-[#1A1A1A] text-center"
           >
-            "Oh — hello. You found me. I'm Pip. I will be... emotionally invested in your hydration. Pick a daily goal and we begin."
+            "Oh — hello. You found me. I'm Pip. I will be... emotionally invested in your hydration.
+            Pick a daily goal and we begin."
           </p>
         </div>
 
@@ -45,7 +46,10 @@ export function Onboarding({
               >
                 {goal}
               </div>
-              <div className="text-[12px] text-[#6B6B6B] mt-1" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+              <div
+                className="text-[12px] text-[#6B6B6B] mt-1"
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
                 milliliters
               </div>
             </div>

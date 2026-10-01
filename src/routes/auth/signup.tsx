@@ -109,13 +109,19 @@ function SignupPage() {
         />
 
         {error && (
-          <p className="text-[13px] text-[#C44]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+          <p
+            className="text-[13px] text-[#C44]"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+          >
             {error}
           </p>
         )}
 
         {success && (
-          <p className="text-[13px] text-[#7BAE7F]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+          <p
+            className="text-[13px] text-[#7BAE7F]"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+          >
             {success}
           </p>
         )}

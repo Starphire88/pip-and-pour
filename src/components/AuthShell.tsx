@@ -166,7 +166,11 @@ export function AuthLink({
   children: ReactNode;
 }) {
   return (
-    <Link to={to} className="text-[13px] text-[#6B6B6B] underline" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <Link
+      to={to}
+      className="text-[13px] text-[#6B6B6B] underline"
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+    >
       {children}
     </Link>
   );
